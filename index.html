@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>OpenACD Web Sample</title>
+<script type="text/javascript" src="jquery-1.7.1.min.js"></script>
+
+<!-- Javascript RSA encryption support -->
+<script language="JavaScript" type="text/javascript" src="jsbn.js"></script>
+<script language="JavaScript" type="text/javascript" src="prng4.js"></script>
+<script language="JavaScript" type="text/javascript" src="rng.js"></script>
+<script language="JavaScript" type="text/javascript" src="rsa.js"></script>
+
+<script type="text/javascript">
+
+var apiRoot = "openacd";
+
+var saltURL = apiRoot + "/getsalt";
+var loginURL = apiRoot + "/login";
+var logoutURL = apiRoot + "/logout";
+
+var getAgentModulesURL = apiRoot + "/agents/modules/get";
+var getSpiceIntegrationURL = apiRoot + "/agents/spiceintegration/get";
+var setSpiceIntegraitonURL = apiRoot + "/agents/spiceintegration/set";
+// setSpiceIntegraiton params: spiceIntegrationEnabled, server, username, password, spiceIntegrationImport
+var getAgentProfilesURL = apiRoot + "/agents/profiles/get";
+var getAgentProfileSkills = apiRoot + "/agents/profiles/%%PROFILE%%/getskills";
+var newAgentProfile = apiRoot + "/agents/profiles/new";
+// newAgentProfile params: name, skills, order, id
+var updateProfileURL = apiRoot + "/agents/profiles/%%PROFILE%%/update";
+// updateProfile params: name, skills, order
+var deleteProfileURL = apiRoot + "/agents/profiles/%%PROFILE%%/delete";
+var getAgentURL = apiRoot + "/agents/%%AGENT%%/get";
+var deleteAgentURL = apiRoot + "/agents/%%AGENT%%/delete";
+var updateAgentURL = apiRoot + "/agents/%%AGENT%%/update";
+// skills, password, confirm, login, security, profile, lastname, firstname
+var newAgentURL = apiRoot + "/agents/%%AGENT%%/new";
+// skills, password, confirm, login, security, profile, lastname, firstname
+var getSkillGroupsURL = apiRoot + "/skills/groups/get";
+var updateSkillGroupsURL = apiRoot + "/skills/groups/%%GROUP/update";
+// name
+var expandQueueSkillsURL = apiRoot + "/skills/skill/_queue/expand";
+var expandNodeSkillsURL = apiRoot + "/skills/skill/_node/expand";
+var expandAgentSkillsURL = apiRoot +"/skills/skill/_agent/expand";
+var expandBrandSkillsURL = apiRoot + "/skills/skill/_brand/expand";
+var updateSkillsURL = apiRoot + "/skills/%%SKILL%%/update";
+// name, description, group
+var newSkillURL = apiRoot + "/skills/skill/new";
+// atom, name, description, group
+var getQueueGroups = apiRoot + "/queues/groups/get";
+var getQueueGroup = apiRoot + "/queues/groups/%%GROUP%%/get";
+var updateQueueGroup = apiRoot + "/queues/groups/%%GROUP%%/update";
+// name, sort, recipe (encoded), skills
+var newQueueGroup = apiRoot = "/queues/groups/new"
+// name, sort, recipe (encoded), skills
+var deleteQueueGroup = apiRoot + "/queues/groups/%%GROUP%%/delete";
+var getQueue = apiRoot + "/queues/queue/%%QUEUE%%/get";
+var updateQueue = apiRoot + "/queues/queue/%%QUEUE%%/update";
+var deleteQueue = apiRoot + "/queues/queue/%%QUEUE%%/delete";
+var newQueue = apiRoot + "/queues/queue/new";
+var pollModules = apiRoot + "/modules/poll";
+var statusModulesURL = apiRoot + "/modules/status";
+var getCdrTcpPusherURL = apiRoot + "/modules/%%NODE%%/cdr_tcp_pusher/get";
+var updateCdrTcpPusherURL = apiRoot + "/modules/%%NODE%%/cdr_tcp_pusher/update";
+var getAgentWebListenerURL = apiRoot + "/modules/%%NODE%%/agent_web_listener/get";
+var updateAgentWebListenerURL = apiRoot + "/modules/%%NODE%%/agent_web_listener/update"
+var getAgentTcpListener = apiRoot + "/modules/%%NODE%%/agent_tcp_listener/get";
+var updateAgentTcpListener = apiRoot + "/modules/%%NODE%%/agent_tcp_listener/update";
+var getAgentDialplanListener = apiRoot + "/modules/%%NODE%%/agent_dialplan_listener/get";
+var updateDialplanListener = apiRoot + "/modules/%%NODE%%/agent_dialplan_listener/update";
+var getCpxWebManagementURL = apiRoot + "/modules/%%NODE%%/cpx_web_management/get";
+var updateCpxWebManagementURL = apiRoot + "/modules/%%NODE%%/cpx_web_management/update";
+var getCpxMonitorODBCSupervisorURL = apiRoot + "/modules/%%NODE%%/cpx_monitor_odbc_supervisor/get";
+var updateCpxMonitorODBCSupervisorURL = apiRoot + "/modules/%%NODE%%/cpx_monitor_odbc_supervisor/update";
+var getCpxMonitorODBCSupervisorURL = apiRoot + "/modules/%%NODE%%/cpx_monitor_odbc_supervisor/get";
+var updateCpxMonitorODBCSupervisorURL = apiRoot + "/modules/%%NODE%%/cpx_monitor_odbc_supervisor/update";
+// TO BE CONTINUED
+
+// var username = "administrator";
+// var password = "Password123";
+
+var username = "211";
+var password = "211";
+
+
+function login(username, password, callback) {
+    console.log("Getting pubkey and salt...");
+    $.getJSON(saltURL, function(saltObj) {
+        var salt = saltObj.salt;
+        var pubKey = saltObj.pubkey;
+
+        if (!saltObj.success) {
+            console.error("Error getting salt");
+            callback(false);
+        }
+
+        console.log("Got salt: " + salt);
+
+        var n = pubKey.N;
+        var e = pubKey.E;
+        
+        var rsa = new RSAKey();
+        rsa.setPublic(n, e);
+
+        var decrypted = salt + password;
+        console.log("Decrypted: " + decrypted);
+
+        var encrypted = rsa.encrypt(decrypted);
+        console.log("Encrypted: " + encrypted);
+
+        var data = {
+          username: username,
+          password: encrypted  
+        };
+
+        $.post(loginURL, data, function(resp) {
+           if (resp.success) {
+               callback(true);
+           } else {
+               callback(false);
+           }
+        }, 'json');
+    });
+
+}
+
+function printResult(e) {
+    console.dir(e);
+}
+
+function callAPI(name, url) {
+    $.get(url, function(e) {
+       console.log(name + " -- " + e);
+    });
+}
+
+function callAPIs() {
+    callAPI("getAgentModules", getAgentModulesURL);
+    callAPI("getSpiceIntegration", getSpiceIntegrationURL);
+    callAPI("getAgentProfiles", getAgentProfilesURL);
+    callAPI("getSkillGroups", getSkillGroupsURL);
+    callAPI("expandQueueSkills", expandQueueSkillsURL);
+    callAPI("expandNodeSkills", expandNodeSkillsURL);
+    callAPI("expandQueueSkills", expandQueueSkillsURL);
+    
+}
+
+login(username, password, function(r) {
+    console.log('login result: ' + r);
+    if (r) {
+        callAPIs();
+    }
+});
+
+</script>
+</head>
+<body>
+
+</body>
+</html>

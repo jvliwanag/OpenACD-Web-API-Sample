@@ -1,0 +1,2 @@
+RewriteEngine On
+RewriteRule openacd/(.*) http://sipxdev.chikka.ph:9999/$1 [P,QSA,L]

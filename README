@@ -1,0 +1,17 @@
+Sample code for accessing OpenACD's Web API.
+
+Requirements
+* Apache 2 with mod_rewrite and mod_proxy enabled and allows .htaccess
+* OpenACD v1
+
+Steps:
+* Start OpenACD v1
+* Clone the repo
+* Copy .htaccess_sample to .htaccess
+* Change OPENACDSERVER to the hostname/ip where OpenACD is running
+* Edit index.html. Set the username and password as necessary.
+* Open the JS console of the browser.
+* Open the URL pointing to index.html
+
+Notes:
+* Currently, everything is printed out the javascript console. Nothing will apear on the page.
